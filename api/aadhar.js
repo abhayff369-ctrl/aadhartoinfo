@@ -1,4 +1,4 @@
-// Hardcoded multi-key system: abhay1-5
+// Hardcoded multi-key system: abhay1, abhay2, abhay3, abhay4, abhay5
 const VALID_KEYS = [
   'abhay1',
   'abhay2',
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     });
   }
 
-  // UPDATED TARGET ENDPOINT
+  // Target Aadhaar API endpoint
   const targetUrl = `https://exploitsindia.site/api/aadhar.php?exploits=${exploits}`;
 
   try {
@@ -60,15 +60,15 @@ export default async function handler(req, res) {
 
     let content = await response.text();
 
-    // Remove any "developer by abhay singh" line (case-insensitive)
-    const removePattern = /developer\s+by\s+abhay\s+singh/gi;
-    content = content.replace(removePattern, '');
+    // Remove "developer by abhay singh" line
+    const removeDeveloper = /developer\s+by\s+abhay\s+singh/gi;
+    content = content.replace(removeDeveloper, '');
 
-    // Remove any "BUY API" and "SUPPORT" lines (with @ mentions)
-    const buySupportPattern = /(💳\s*BUY\s+API\s*:\s*@\S+\s*|🆘\s*SUPPORT\s*:\s*@\S+\s*|━━━━━━━━━━━━━━━━━━━━━━━━━━━)/gi;
-    content = content.replace(buySupportPattern, '');
+    // Remove BUY API and SUPPORT lines
+    const removeBuySupport = /(💳\s*BUY\s+API\s*:\s*@\S+\s*|🆘\s*SUPPORT\s*:\s*@\S+\s*|━━━━━━━━━━━━━━━━━━━━━━━━━━━)/gi;
+    content = content.replace(removeBuySupport, '');
 
-    // Optional: clean up multiple newlines left after removal
+    // Clean up extra newlines
     content = content.replace(/\n{3,}/g, '\n\n').trim();
 
     console.log(`[KEY_USED] ${api_key} accessed Aadhaar: ${exploits}`);
