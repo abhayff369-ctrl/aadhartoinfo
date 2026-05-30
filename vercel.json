@@ -1,9 +1,25 @@
 {
-  "rewrites": [{ "source": "/api/(.*)", "destination": "/api/aadhar.js" }],
   "functions": {
-    "api/scrape.js": {
+    "api/aadhar.js": {
       "maxDuration": 10,
-      "memory": 1024
+      "memory": 1024,
+      "excludeFiles": "node_modules/**"
     }
-  }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/aadhar",
+      "destination": "/api/aadhar.js"
+    }
+  ]
 }
