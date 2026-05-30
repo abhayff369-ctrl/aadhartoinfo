@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid number. Use 10 digits.' });
   }
 
-  const targetUrl = `https://exploitsindia.site/api/number.php?exploits=${exploits}`;
+  const targetUrl = `https://exploitsindia.site/api/aadhar.php?exploits=${exploits}`;
 
   try {
     const response = await fetch(targetUrl, {
