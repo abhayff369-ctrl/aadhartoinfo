@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   if (!exploits) {
     return res.status(400).json({ error: 'Missing number parameter', usage: '?api_key=KEY&exploits=9876543210' });
   }
-  const phoneRegex = /^\d{10}$/;
+  const phoneRegex = /^\d{12}$/;
   if (!phoneRegex.test(exploits)) {
     return res.status(400).json({ error: 'Invalid number. Use 12 digits.' });
   }
