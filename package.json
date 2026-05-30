@@ -1,25 +1,11 @@
 {
   "name": "aadhar-vercel-api",
   "version": "1.0.0",
-  "description": "Aadhaar lookup API with multi-key authentication on Vercel",
+  "description": "Aadhaar lookup API with multi-key authentication",
   "type": "module",
-  "main": "api/aadhar.js",
   "scripts": {
     "dev": "vercel dev",
-    "deploy": "vercel --prod",
-    "start": "node api/aadhar.js"
-  },
-  "keywords": [
-    "vercel",
-    "api",
-    "aadhaar",
-    "scraper",
-    "serverless"
-  ],
-  "author": "Abhay Singh",
-  "license": "MIT",
-  "engines": {
-    "node": ">=18.x"
+    "deploy": "vercel --prod"
   },
   "dependencies": {},
   "devDependencies": {
