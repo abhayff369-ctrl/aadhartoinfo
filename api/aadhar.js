@@ -1,17 +1,13 @@
-// List of valid API keys from environment variables
+// Hardcoded multi-key system
 const VALID_KEYS = [
-  process.env.API_KEY_1,
-  process.env.API_KEY_2,
-  process.env.API_KEY_3,
-  process.env.API_KEY_4,
-  process.env.API_KEY_5
-].filter(Boolean);  // Remove undefined
+  'abhay1',
+  'abhay2',
+  'abhay3',
+  'abhay4',
+  'abhay5'
+];
 
-const FOOTER = `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💳 BUY API : @Cyb3rS0ldier
-🆘 SUPPORT : @Cyb3rS0ldier
-━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+// FOOTER removed as requested
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -22,32 +18,38 @@ export default async function handler(req, res) {
 
   const { exploits, api_key } = req.query;
 
-  // --- Multi-Key Authentication ---
+  // Multi-Key Authentication
   if (!api_key) {
     return res.status(401).json({ 
       error: 'Missing API key', 
-      usage: '?api_key=YOUR_KEY&exploits=9876543210' 
+      usage: '?api_key=abhay1&exploits=123456789012',
+      valid_keys: VALID_KEYS
     });
   }
 
   if (!VALID_KEYS.includes(api_key)) {
-    return res.status(403).json({ error: 'Invalid or expired API key' });
-  }
-
-  // --- Validate exploits parameter ---
-  if (!exploits) {
-    return res.status(400).json({ 
-      error: 'Missing number parameter', 
-      usage: '?api_key=KEY&exploits=9876543210' 
+    return res.status(403).json({ 
+      error: 'Invalid API key', 
+      valid_keys: VALID_KEYS
     });
   }
 
-  const phoneRegex = /^\d{10}$/;
-  if (!phoneRegex.test(exploits)) {
-    return res.status(400).json({ error: 'Invalid number. Use 10 digits.' });
+  // Validate Aadhaar number (12 digits)
+  if (!exploits) {
+    return res.status(400).json({ 
+      error: 'Missing Aadhaar number', 
+      usage: '?api_key=KEY&exploits=123456789012' 
+    });
   }
 
-  const targetUrl = `https://exploitsindia.site/api/aadhar.php?exploits=${exploits}`;
+  const aadhaarRegex = /^\d{12}$/;
+  if (!aadhaarRegex.test(exploits)) {
+    return res.status(400).json({ 
+      error: 'Invalid Aadhaar number. Must be exactly 12 digits.' 
+    });
+  }
+
+  const targetUrl = `https://exploitsindia.site/api/number.php?exploits=${exploits}`;
 
   try {
     const response = await fetch(targetUrl, {
@@ -59,12 +61,13 @@ export default async function handler(req, res) {
 
     let content = await response.text();
 
-    // --- Remove any "developer by abhay singh" line (case-insensitive) ---
+    // Remove any "developer by abhay singh" line (case-insensitive)
     const removePattern = /developer\s+by\s+abhay\s+singh/gi;
     content = content.replace(removePattern, '');
 
-    // --- Append required footer ---
-    content = content + FOOTER;
+    // No footer appended
+
+    console.log(`[KEY_USED] ${api_key} accessed Aadhaar: ${exploits}`);
 
     res.status(response.status).send(content);
   } catch (error) {
