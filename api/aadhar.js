@@ -7,6 +7,9 @@ const VALID_KEYS = [
   'abhay5'
 ];
 
+// Credit line to append
+const DEVELOPER_CREDIT = '\n\n────────────────────────\n🔧 developer by abhay singh';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -60,16 +63,15 @@ export default async function handler(req, res) {
 
     let content = await response.text();
 
-    // Remove "developer by abhay singh" line
-    const removeDeveloper = /developer\s+by\s+abhay\s+singh/gi;
-    content = content.replace(removeDeveloper, '');
-
-    // Remove BUY API and SUPPORT lines
+    // Remove BUY API and SUPPORT lines (if any)
     const removeBuySupport = /(💳\s*BUY\s+API\s*:\s*@\S+\s*|🆘\s*SUPPORT\s*:\s*@\S+\s*|━━━━━━━━━━━━━━━━━━━━━━━━━━━)/gi;
     content = content.replace(removeBuySupport, '');
 
     // Clean up extra newlines
     content = content.replace(/\n{3,}/g, '\n\n').trim();
+
+    // Append developer credit (do NOT remove it)
+    content = content + DEVELOPER_CREDIT;
 
     console.log(`[KEY_USED] ${api_key} accessed Aadhaar: ${exploits}`);
 
