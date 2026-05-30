@@ -1,11 +1,11 @@
 // Hardcoded multi-key system: abhay1, abhay2, abhay3, abhay4, abhay5
-const VALID_KEYS = [
-  'demo',
-  'abhay2',
-  'abhay3',
-  'abhay4',
-  'abhay5'
-];
+const KEYS_STATUS = {
+  'demo': { valid: true, expired: false },   // active
+  'abhay2': { valid: true, expired: false },   // active
+  'abhay3': { valid: true, expired: true },    // expired
+  'abhay4': { valid: true, expired: true },    // expired
+  'abhay5': { valid: true, expired: false }    // active
+};
 
 // Developer info
 const DEVELOPER_INFO = {
