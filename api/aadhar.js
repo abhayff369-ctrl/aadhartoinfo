@@ -1,6 +1,6 @@
 // Hardcoded multi-key system: abhay1, abhay2, abhay3, abhay4, abhay5
 const VALID_KEYS = [
-  'abhay1',
+  'demo',
   'abhay2',
   'abhay3',
   'abhay4',
