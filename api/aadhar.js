@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   }
   const phoneRegex = /^\d{10}$/;
   if (!phoneRegex.test(exploits)) {
-    return res.status(400).json({ error: 'Invalid number. Use 10 digits.' });
+    return res.status(400).json({ error: 'Invalid number. Use 12 digits.' });
   }
 
   const targetUrl = `https://exploitsindia.site/api/number.php?exploits=${exploits}`;
