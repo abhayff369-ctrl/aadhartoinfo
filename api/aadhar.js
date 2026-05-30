@@ -1,6 +1,6 @@
 // Hardcoded multi-key system with expiry status
 const KEYS_STATUS = {
-  'abhay1': { valid: true, expired: false },
+  'team': { valid: true, expired: false },
   'abhay2': { valid: true, expired: false },
   'abhay3': { valid: true, expired: false },
   'abhay4': { valid: true, expired: true },
