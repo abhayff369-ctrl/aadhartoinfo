@@ -1,4 +1,4 @@
-// Hardcoded multi-key system
+// Hardcoded multi-key system: abhay1-5
 const VALID_KEYS = [
   'abhay1',
   'abhay2',
@@ -6,8 +6,6 @@ const VALID_KEYS = [
   'abhay4',
   'abhay5'
 ];
-
-// FOOTER removed as requested
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -34,7 +32,7 @@ export default async function handler(req, res) {
     });
   }
 
-  // Validate Aadhaar number (12 digits)
+  // Validate Aadhaar (12 digits)
   if (!exploits) {
     return res.status(400).json({ 
       error: 'Missing Aadhaar number', 
@@ -49,7 +47,8 @@ export default async function handler(req, res) {
     });
   }
 
-  const targetUrl = `https://exploitsindia.site/api/number.php?exploits=${exploits}`;
+  // UPDATED TARGET ENDPOINT
+  const targetUrl = `https://exploitsindia.site/api/aadhar.php?exploits=${exploits}`;
 
   try {
     const response = await fetch(targetUrl, {
@@ -65,7 +64,12 @@ export default async function handler(req, res) {
     const removePattern = /developer\s+by\s+abhay\s+singh/gi;
     content = content.replace(removePattern, '');
 
-    // No footer appended
+    // Remove any "BUY API" and "SUPPORT" lines (with @ mentions)
+    const buySupportPattern = /(💳\s*BUY\s+API\s*:\s*@\S+\s*|🆘\s*SUPPORT\s*:\s*@\S+\s*|━━━━━━━━━━━━━━━━━━━━━━━━━━━)/gi;
+    content = content.replace(buySupportPattern, '');
+
+    // Optional: clean up multiple newlines left after removal
+    content = content.replace(/\n{3,}/g, '\n\n').trim();
 
     console.log(`[KEY_USED] ${api_key} accessed Aadhaar: ${exploits}`);
 
