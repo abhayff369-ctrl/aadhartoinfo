@@ -1,10 +1,10 @@
-// Hardcoded multi-key system: abhay1, abhay2, abhay3, abhay4, abhay5
+// Hardcoded multi-key system with expiry status
 const KEYS_STATUS = {
-  'demo': { valid: true, expired: false },   // active
-  'abhay2': { valid: true, expired: false },   // active
-  'abhay3': { valid: true, expired: true },    // expired
-  'abhay4': { valid: true, expired: true },    // expired
-  'abhay5': { valid: true, expired: false }    // active
+  'abhay1': { valid: true, expired: false },
+  'abhay2': { valid: true, expired: false },
+  'abhay3': { valid: true, expired: false },
+  'abhay4': { valid: true, expired: true },
+  'abhay5': { valid: true, expired: false }
 };
 
 // Developer info
@@ -15,41 +15,61 @@ const DEVELOPER_INFO = {
 };
 
 export default async function handler(req, res) {
-  // Set CORS and JSON headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Content-Type', 'application/json');
   
-  // Handle preflight request
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { exploits, api_key } = req.query;
 
-  // --- Multi-Key Authentication ---
+  // Missing API key
   if (!api_key) {
     return res.status(401).json({ 
       success: false,
       error: 'Missing API key', 
-      usage: '?api_key=abhay1&exploits=123456789012',
-      valid_keys: VALID_KEYS,
+      key_status: 'missing',
+      usage: '?api_key=KEY&exploits=123456789012',
       developer: DEVELOPER_INFO
     });
   }
 
-  if (!VALID_KEYS.includes(api_key)) {
+  // Invalid API key (not in system)
+  if (!KEYS_STATUS[api_key]) {
     return res.status(403).json({ 
       success: false,
       error: 'Invalid API key', 
-      valid_keys: VALID_KEYS,
+      key_status: 'invalid',
       developer: DEVELOPER_INFO
     });
   }
 
-  // --- Validate Aadhaar (12 digits) ---
+  // Expired API key
+  if (KEYS_STATUS[api_key].expired === true) {
+    return res.status(403).json({ 
+      success: false,
+      error: 'API key expired', 
+      key_status: 'expired',
+      developer: DEVELOPER_INFO
+    });
+  }
+
+  // Invalid valid flag
+  if (!KEYS_STATUS[api_key].valid) {
+    return res.status(403).json({ 
+      success: false,
+      error: 'Invalid API key', 
+      key_status: 'invalid',
+      developer: DEVELOPER_INFO
+    });
+  }
+
+  // Validate Aadhaar (12 digits)
   if (!exploits) {
     return res.status(400).json({ 
       success: false,
       error: 'Missing Aadhaar number', 
+      key_status: 'valid',
       usage: '?api_key=KEY&exploits=123456789012',
       developer: DEVELOPER_INFO
     });
@@ -60,11 +80,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ 
       success: false,
       error: 'Invalid Aadhaar number. Must be exactly 12 digits.',
+      key_status: 'valid',
       developer: DEVELOPER_INFO
     });
   }
 
-  // --- Target API ---
   const targetUrl = `https://exploitsindia.site/api/aadhar.php?exploits=${exploits}`;
 
   try {
@@ -77,12 +97,11 @@ export default async function handler(req, res) {
 
     let rawText = await response.text();
 
-    // Remove BUY/SUPPORT lines and extra separators
     const removeBuySupport = /(💳\s*BUY\s+API\s*:\s*@\S+\s*|🆘\s*SUPPORT\s*:\s*@\S+\s*|━━━━━━━━━━━━━━━━━━━━━━━━━━━)/gi;
     rawText = rawText.replace(removeBuySupport, '');
 
-    // Parse into JSON
     const parsedResult = parseAadhaarResponse(rawText, exploits, api_key);
+    parsedResult.key_status = 'valid';
 
     console.log(`[KEY_USED] ${api_key} accessed Aadhaar: ${exploits}`);
     res.status(200).json(parsedResult);
@@ -92,13 +111,13 @@ export default async function handler(req, res) {
     res.status(500).json({ 
       success: false,
       error: 'Failed to fetch from target', 
+      key_status: 'valid',
       details: error.message,
       developer: DEVELOPER_INFO
     });
   }
 }
 
-// Parser function
 function parseAadhaarResponse(text, requestedAadhaar, usedKey) {
   const result = {
     success: true,
@@ -115,7 +134,6 @@ function parseAadhaarResponse(text, requestedAadhaar, usedKey) {
     aadhaars: []
   };
 
-  // Split main and additional sections
   let mainSection = text;
   let additionalSection = '';
 
@@ -125,7 +143,6 @@ function parseAadhaarResponse(text, requestedAadhaar, usedKey) {
     additionalSection = parts[1];
   }
 
-  // Regex patterns
   const aadhaarPattern = /🪪\s*Aadhaar:\s*(\d{12})/;
   const namePattern = /👤\s*Name:\s*(.+?)(?:\n|$)/;
   const fatherPattern = /👨‍👦\s*Father Name:\s*(.+?)(?:\n|$)/;
@@ -133,7 +150,6 @@ function parseAadhaarResponse(text, requestedAadhaar, usedKey) {
   const addressPattern = /🏠\s*Address:\s*(.+?)(?:\n📡|$)/;
   const circlePattern = /📡\s*Circle:\s*(.+?)(?:\n|$)/;
 
-  // Parse main section
   const aadhaarMatch = mainSection.match(aadhaarPattern);
   const nameMatch = mainSection.match(namePattern);
   const fatherMatch = mainSection.match(fatherPattern);
@@ -151,7 +167,6 @@ function parseAadhaarResponse(text, requestedAadhaar, usedKey) {
     result.mobile_lookup.circle = circleMatch ? circleMatch[1].trim() : null;
   }
 
-  // Parse additional section
   if (additionalSection) {
     const additionalAadhaar = additionalSection.match(aadhaarPattern);
     const additionalMobile = additionalSection.match(mobilePattern);
