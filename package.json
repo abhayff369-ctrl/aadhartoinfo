@@ -1,11 +1,16 @@
 {
-  "name": "aadhar-text-api",
+  "name": "aadhar-vercel-api",
   "version": "1.0.0",
-  "description": "Aadhaar lookup API returning plain text with developer credit",
+  "description": "Aadhaar lookup API with multi-key authentication",
   "type": "module",
   "scripts": {
     "dev": "vercel dev",
     "deploy": "vercel --prod"
+  },
+  "author": "Abhay Singh",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.x"
   },
   "dependencies": {},
   "devDependencies": {
