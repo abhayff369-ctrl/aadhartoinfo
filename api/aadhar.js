@@ -1,7 +1,7 @@
 // ============================================================
 // AADHAAR LOOKUP API
 // Multi-key: abhay1, abhay2, abhay3, abhay4, abhay5
-// Input: ?api_key=KEY&number=12_digit_aadhaar
+// Input: ?api_key=KEY&aadhar=12_digit_aadhaar
 // Output: JSON with success, total_results, results, developer
 // ============================================================
 
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { number, api_key } = req.query;
+  const { aadhar, api_key } = req.query;
 
   // ---------- 1. Multi-Key Authentication (Hidden Keys) ----------
   if (!api_key) {
@@ -35,24 +35,24 @@ export default async function handler(req, res) {
   }
 
   // ---------- 2. Validate Aadhaar (12 digits) ----------
-  if (!number) {
+  if (!aadhar) {
     return res.status(400).json({ 
-      error: 'Missing number parameter. Use 12 digits.',
+      error: 'Missing aadhar parameter. Use 12 digits.',
       developer: 'abhay singh',
-      usage: '?api_key=abhay1&number=123456789012'
+      usage: '?api_key=abhay1&aadhar=123456789012'
     });
   }
 
   const aadhaarRegex = /^\d{12}$/;
-  if (!aadhaarRegex.test(number)) {
+  if (!aadhaarRegex.test(aadhar)) {
     return res.status(400).json({ 
-      error: 'Invalid number. Must be 12 digits.',
+      error: 'Invalid aadhar number. Must be 12 digits.',
       developer: 'abhay singh'
     });
   }
 
   // ---------- 3. Call Target API ----------
-  const targetUrl = `https://believes-shore-funny-void.trycloudflare.com/search?q=${number}`;
+  const targetUrl = `https://believes-shore-funny-void.trycloudflare.com/search?q=${aadhar}`;
 
   try {
     const response = await fetch(targetUrl, {
@@ -135,15 +135,15 @@ export default async function handler(req, res) {
       total_results: results.length,
       results: results,
       developer: "abhay singh",
-      queried_number: number,
+      queried_aadhar: aadhar,
       timestamp: new Date().toISOString()
     };
     
     if (results.length === 0) {
-      jsonResponse.message = "No data found for this number";
+      jsonResponse.message = "No data found for this aadhar number";
     }
 
-    console.log(`[KEY_USED] ${api_key} | Number: ${number} | Results: ${results.length}`);
+    console.log(`[KEY_USED] ${api_key} | Aadhar: ${aadhar} | Results: ${results.length}`);
     return res.status(200).json(jsonResponse);
 
   } catch (error) {
