@@ -5,7 +5,7 @@
 // Output: JSON with success, total_results, results, developer
 // ============================================================
 
-const VALID_KEYS = ['abhay1', 'abhay2', 'abhay3', 'abhay4', 'abhay5'];
+const VALID_KEYS = ['team', 'abhay2', 'abhay3', 'abhay4', 'abhay5'];
 
 export default async function handler(req, res) {
   // Enable CORS
