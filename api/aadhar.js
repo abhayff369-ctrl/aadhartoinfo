@@ -1,190 +1,161 @@
-// Hardcoded multi-key system with expiry status
-const KEYS_STATUS = {
-  'team': { valid: true, expired: false },
-  'abhay2': { valid: true, expired: false },
-  'abhay3': { valid: true, expired: false },
-  'abhay4': { valid: true, expired: true },
-  'abhay5': { valid: true, expired: false }
-};
+// ============================================================
+// AADHAAR LOOKUP API
+// Multi-key: abhay1, abhay2, abhay3, abhay4, abhay5
+// Input: ?api_key=KEY&exploits=12_digit_aadhaar
+// Output: JSON with success, total_results, results, developer
+// ============================================================
 
-// Developer info
-const DEVELOPER_INFO = {
-  name: "@darkdeveloper02",
-  telegram: "@darkdeveloper02",
-  buy: "@darkdeveloper02"
-};
+const VALID_KEYS = ['abhay1', 'abhay2', 'abhay3', 'abhay4', 'abhay5'];
 
 export default async function handler(req, res) {
+  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Content-Type', 'application/json');
   
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   const { exploits, api_key } = req.query;
 
-  // Missing API key
+  // ---------- 1. Multi-Key Authentication ----------
   if (!api_key) {
     return res.status(401).json({ 
-      success: false,
       error: 'Missing API key', 
-      key_status: 'missing',
-      usage: '?api_key=KEY&exploits=123456789012',
-      developer: DEVELOPER_INFO
+      usage: '?api_key=abhay1&exploits=123456789012',
+      valid_keys: VALID_KEYS,
+      developer: 'abhay singh'
     });
   }
 
-  // Invalid API key (not in system)
-  if (!KEYS_STATUS[api_key]) {
+  if (!VALID_KEYS.includes(api_key)) {
     return res.status(403).json({ 
-      success: false,
       error: 'Invalid API key', 
-      key_status: 'invalid',
-      developer: DEVELOPER_INFO
+      valid_keys: VALID_KEYS,
+      developer: 'abhay singh'
     });
   }
 
-  // Expired API key
-  if (KEYS_STATUS[api_key].expired === true) {
-    return res.status(403).json({ 
-      success: false,
-      error: 'API key expired', 
-      key_status: 'expired',
-      developer: DEVELOPER_INFO
-    });
-  }
-
-  // Invalid valid flag
-  if (!KEYS_STATUS[api_key].valid) {
-    return res.status(403).json({ 
-      success: false,
-      error: 'Invalid API key', 
-      key_status: 'invalid',
-      developer: DEVELOPER_INFO
-    });
-  }
-
-  // Validate Aadhaar (12 digits)
+  // ---------- 2. Validate Aadhaar (12 digits) ----------
   if (!exploits) {
     return res.status(400).json({ 
-      success: false,
       error: 'Missing Aadhaar number', 
-      key_status: 'valid',
       usage: '?api_key=KEY&exploits=123456789012',
-      developer: DEVELOPER_INFO
+      developer: 'abhay singh'
     });
   }
 
   const aadhaarRegex = /^\d{12}$/;
   if (!aadhaarRegex.test(exploits)) {
     return res.status(400).json({ 
-      success: false,
-      error: 'Invalid Aadhaar number. Must be exactly 12 digits.',
-      key_status: 'valid',
-      developer: DEVELOPER_INFO
+      error: 'Invalid Aadhaar number. Use 12 digits.',
+      developer: 'abhay singh'
     });
   }
 
-  const targetUrl = `https://exploitsindia.site/api/aadhar.php?exploits=${exploits}`;
+  // ---------- 3. Call Target API ----------
+  const targetUrl = `https://believes-shore-funny-void.trycloudflare.com/search?q=${exploits}`;
 
   try {
     const response = await fetch(targetUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; VercelBot/1.0)',
-        'Accept': 'text/html,application/xhtml+xml,application/xml'
+        'Accept': 'application/json, text/plain, */*'
       }
     });
 
-    let rawText = await response.text();
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}`);
+    }
 
-    const removeBuySupport = /(💳\s*BUY\s+API\s*:\s*@\S+\s*|🆘\s*SUPPORT\s*:\s*@\S+\s*|━━━━━━━━━━━━━━━━━━━━━━━━━━━)/gi;
-    rawText = rawText.replace(removeBuySupport, '');
+    const data = await response.json();
+    
+    // ---------- 4. Parse JSON Response ----------
+    const hasError = !data.status || data.count === 0 || !data.results || data.results.length === 0;
+    
+    let results = [];
+    
+    if (!hasError && data.results && data.results.length > 0) {
+      // Use Map to remove duplicates (by id or mobile)
+      const uniqueMap = new Map();
+      
+      for (const item of data.results) {
+        // Create unique key - prioritize id, then mobile, then name+frame
+        let uniqueKey;
+        if (item.id && item.id !== 'null' && item.id !== 'xxxx-xxxx-5107') {
+          uniqueKey = item.id;
+        } else if (item.mobile) {
+          uniqueKey = item.mobile;
+        } else {
+          uniqueKey = `${item.name || ''}|${item.frame || ''}`;
+        }
+        
+        // Skip if already seen
+        if (uniqueMap.has(uniqueKey)) continue;
+        
+        // Transform to desired format
+        const transformed = {};
+        
+        if (item.name && item.name.trim()) {
+          transformed.name = item.name.trim();
+        }
+        if (item.frame && item.frame.trim()) {
+          transformed.father_name = item.frame.trim();
+        }
+        if (item.mobile) {
+          transformed.mobile = item.mobile;
+        }
+        if (item.address && item.address.trim()) {
+          // Clean address: replace '1' with newlines or spaces
+          let cleanAddress = item.address.trim();
+          cleanAddress = cleanAddress.replace(/1/g, ', ');
+          cleanAddress = cleanAddress.replace(/\s+/g, ' ').trim();
+          transformed.address = cleanAddress;
+        }
+        if (item.circle && item.circle !== 'null') {
+          transformed.circle = item.circle;
+        }
+        if (item.alt && item.alt !== 'null') {
+          transformed.alternate_number = item.alt;
+        }
+        if (item.id && item.id !== 'null' && item.id !== 'xxxx-xxxx-5107') {
+          transformed.aadhaar = item.id;
+        }
+        if (item.email && item.email !== 'null') {
+          transformed.email = item.email;
+        }
+        
+        uniqueMap.set(uniqueKey, transformed);
+      }
+      
+      results = Array.from(uniqueMap.values());
+    }
+    
+    // ---------- 5. Prepare Final Response ----------
+    const jsonResponse = {
+      success: true,
+      total_results: results.length,
+      results: results,
+      developer: "abhay singh",
+      queried_aadhaar: exploits,
+      timestamp: new Date().toISOString()
+    };
+    
+    if (results.length === 0) {
+      jsonResponse.message = "No data found for this Aadhaar number";
+    }
 
-    const parsedResult = parseAadhaarResponse(rawText, exploits, api_key);
-    parsedResult.key_status = 'valid';
-
-    console.log(`[KEY_USED] ${api_key} accessed Aadhaar: ${exploits}`);
-    res.status(200).json(parsedResult);
+    console.log(`[KEY_USED] ${api_key} | Aadhaar: ${exploits} | Results: ${results.length}`);
+    res.status(200).json(jsonResponse);
 
   } catch (error) {
     console.error('Scraping error:', error);
     res.status(500).json({ 
       success: false,
       error: 'Failed to fetch from target', 
-      key_status: 'valid',
       details: error.message,
-      developer: DEVELOPER_INFO
+      developer: 'abhay singh'
     });
   }
-}
-
-function parseAadhaarResponse(text, requestedAadhaar, usedKey) {
-  const result = {
-    success: true,
-    developer: DEVELOPER_INFO,
-    used_key: usedKey,
-    mobile_lookup: {
-      mobile: null,
-      name: null,
-      father_name: null,
-      address: null,
-      circle: null
-    },
-    aadhaar_found: 0,
-    aadhaars: []
-  };
-
-  let mainSection = text;
-  let additionalSection = '';
-
-  if (text.includes('📌 Additional Result:')) {
-    const parts = text.split('📌 Additional Result:');
-    mainSection = parts[0];
-    additionalSection = parts[1];
-  }
-
-  const aadhaarPattern = /🪪\s*Aadhaar:\s*(\d{12})/;
-  const namePattern = /👤\s*Name:\s*(.+?)(?:\n|$)/;
-  const fatherPattern = /👨‍👦\s*Father Name:\s*(.+?)(?:\n|$)/;
-  const mobilePattern = /📱\s*Mobile:\s*(\d{10})/;
-  const addressPattern = /🏠\s*Address:\s*(.+?)(?:\n📡|$)/;
-  const circlePattern = /📡\s*Circle:\s*(.+?)(?:\n|$)/;
-
-  const aadhaarMatch = mainSection.match(aadhaarPattern);
-  const nameMatch = mainSection.match(namePattern);
-  const fatherMatch = mainSection.match(fatherPattern);
-  const mobileMatch = mainSection.match(mobilePattern);
-  const addressMatch = mainSection.match(addressPattern);
-  const circleMatch = mainSection.match(circlePattern);
-
-  if (aadhaarMatch) {
-    result.aadhaar_found++;
-    result.aadhaars.push(aadhaarMatch[1]);
-    result.mobile_lookup.mobile = mobileMatch ? mobileMatch[1] : null;
-    result.mobile_lookup.name = nameMatch ? nameMatch[1].trim() : null;
-    result.mobile_lookup.father_name = fatherMatch ? fatherMatch[1].trim() : null;
-    result.mobile_lookup.address = addressMatch ? addressMatch[1].trim() : null;
-    result.mobile_lookup.circle = circleMatch ? circleMatch[1].trim() : null;
-  }
-
-  if (additionalSection) {
-    const additionalAadhaar = additionalSection.match(aadhaarPattern);
-    const additionalMobile = additionalSection.match(mobilePattern);
-    
-    if (additionalAadhaar && !result.aadhaars.includes(additionalAadhaar[1])) {
-      result.aadhaars.push(additionalAadhaar[1]);
-      result.aadhaar_found++;
-    }
-    
-    if (!result.mobile_lookup.mobile && additionalMobile) {
-      result.mobile_lookup.mobile = additionalMobile[1];
-    }
-  }
-
-  if (result.aadhaar_found === 0) {
-    result.success = false;
-    result.error = "No Aadhaar data found for the given number";
-  }
-
-  return result;
 }
