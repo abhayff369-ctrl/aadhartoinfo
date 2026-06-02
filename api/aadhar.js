@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ 
       error: 'Missing aadhar parameter. Use 12 digits.',
       developer: 'abhay singh',
-      usage: '?api_key=abhay1&aadhar=123456789012'
+      usage: '?api_key=yourkey&aadhar=123456789012'
     });
   }
 
