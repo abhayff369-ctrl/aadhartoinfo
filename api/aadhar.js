@@ -19,20 +19,17 @@ export default async function handler(req, res) {
 
   const { exploits, api_key } = req.query;
 
-  // ---------- 1. Multi-Key Authentication ----------
+  // ---------- 1. Multi-Key Authentication (Hidden Keys) ----------
   if (!api_key) {
     return res.status(401).json({ 
-      error: 'Missing API key', 
-      usage: '?api_key=abhay1&exploits=123456789012',
-      valid_keys: VALID_KEYS,
+      error: 'Missing API key. Please provide a valid API key.',
       developer: 'abhay singh'
     });
   }
 
   if (!VALID_KEYS.includes(api_key)) {
     return res.status(403).json({ 
-      error: 'Invalid API key', 
-      valid_keys: VALID_KEYS,
+      error: 'Invalid API key. Access denied.',
       developer: 'abhay singh'
     });
   }
@@ -40,8 +37,7 @@ export default async function handler(req, res) {
   // ---------- 2. Validate Aadhaar (12 digits) ----------
   if (!exploits) {
     return res.status(400).json({ 
-      error: 'Missing Aadhaar number', 
-      usage: '?api_key=KEY&exploits=123456789012',
+      error: 'Missing Aadhaar number. Use 12 digits.',
       developer: 'abhay singh'
     });
   }
@@ -49,7 +45,7 @@ export default async function handler(req, res) {
   const aadhaarRegex = /^\d{12}$/;
   if (!aadhaarRegex.test(exploits)) {
     return res.status(400).json({ 
-      error: 'Invalid Aadhaar number. Use 12 digits.',
+      error: 'Invalid Aadhaar number. Must be 12 digits.',
       developer: 'abhay singh'
     });
   }
@@ -107,10 +103,10 @@ export default async function handler(req, res) {
           transformed.mobile = item.mobile;
         }
         if (item.address && item.address.trim()) {
-          // Clean address: replace '1' with newlines or spaces
           let cleanAddress = item.address.trim();
           cleanAddress = cleanAddress.replace(/1/g, ', ');
           cleanAddress = cleanAddress.replace(/\s+/g, ' ').trim();
+          cleanAddress = cleanAddress.replace(/^,\s+/, '').replace(/\s+,$/, '');
           transformed.address = cleanAddress;
         }
         if (item.circle && item.circle !== 'null') {
@@ -147,11 +143,11 @@ export default async function handler(req, res) {
     }
 
     console.log(`[KEY_USED] ${api_key} | Aadhaar: ${exploits} | Results: ${results.length}`);
-    res.status(200).json(jsonResponse);
+    return res.status(200).json(jsonResponse);
 
   } catch (error) {
     console.error('Scraping error:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false,
       error: 'Failed to fetch from target', 
       details: error.message,
